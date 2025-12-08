@@ -1,112 +1,67 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nano Banana Studio | AI Image Generator</title>
-
-    <!-- Meta Tags for SEO & Sharing -->
-    <meta name="description"
-        content="A zero-setup, single-file AI image generation studio powered by Google Gemini 3 Pro. No backend required.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nano Banana Studio | Mobile Final v1.9</title>
+    
+    <meta name="description" content="AI image generation studio powered by Google Gemini 3 Pro.">
     <meta property="og:title" content="Nano Banana Studio">
-    <meta property="og:description" content="釋放 Gemini 3 Pro 的圖像生成潛力。免安裝、單一檔案、即開即用。">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://emojicdn.elk.sh/🍌"> <!-- Placeholder image -->
-
-    <!-- Favicon (Emoji Trick) -->
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍌</text></svg>">
+    <meta property="og:image" content="https://emojicdn.elk.sh/🍌">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍌</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-
+    
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #f8fafc;
             color: #1e293b;
+            overscroll-behavior-y: none;
         }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #15803d;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #14532d;
-        }
-
+        
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        
         .loader {
-            border: 4px solid #e2e8f0;
+            border: 3px solid #e2e8f0;
             border-radius: 50%;
-            border-top: 4px solid #facc15;
-            width: 40px;
-            height: 40px;
+            border-top: 3px solid #facc15;
+            width: 32px; height: 32px;
             animation: spin 1s linear infinite;
         }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Tag Button Styles */
         .tag-btn {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 2px solid #e2e8f0;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
             background-color: #ffffff;
             color: #334155;
             font-weight: 500;
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
         }
-
-        .tag-btn:hover {
-            border-color: #facc15;
-            background-color: #fefce8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
+        .tag-btn:active { transform: scale(0.96); background-color: #fefce8; }
         .tag-btn.active {
             border-color: #15803d;
             background-color: #dcfce7;
             color: #166534;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
             font-weight: 700;
             position: relative;
         }
-
         .tag-btn.active::after {
             content: '✓';
             position: absolute;
             top: 4px;
-            right: 8px;
+            right: 6px;
             font-size: 10px;
             color: #15803d;
         }
-
-        .tag-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Tab Animation */
+        
         .tab-content {
             display: none;
             opacity: 0;
@@ -114,399 +69,256 @@
             flex-grow: 1;
             transition: opacity 0.2s ease-in-out;
         }
+        .tab-content.active { display: flex; opacity: 1; }
 
-        .tab-content.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        #styleTooltip {
-            transition: opacity 0.2s, transform 0.2s;
-            pointer-events: none;
-        }
-
-        /* Lightbox */
-        #lightbox {
-            transition: opacity 0.3s ease;
-        }
-
-        #lightbox.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        #lightbox:not(.hidden) {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #lightbox img {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Checkbox Custom Style */
-        .custom-checkbox:checked {
-            background-color: #15803d;
-            border-color: #15803d;
-        }
-
-        .custom-checkbox:checked+div {
-            color: #15803d;
-            font-weight: 700;
-        }
+        #styleTooltip { transition: opacity 0.2s; pointer-events: none; }
+        #lightbox { transition: opacity 0.3s ease; }
+        #lightbox.hidden { opacity: 0; pointer-events: none; }
+        #lightbox:not(.hidden) { opacity: 1; pointer-events: auto; }
+        .custom-checkbox:checked { background-color: #15803d; border-color: #15803d; }
     </style>
 </head>
-
 <body class="h-screen flex flex-col overflow-hidden selection:bg-yellow-300 selection:text-green-900">
 
     <!-- Header -->
-    <header
-        class="h-16 bg-green-800 border-b-4 border-yellow-400 flex items-center justify-between px-4 md:px-6 shrink-0 z-50 shadow-md gap-4">
+    <header class="h-14 md:h-16 bg-green-800 border-b-4 border-yellow-400 flex items-center justify-between px-3 md:px-6 shrink-0 z-50 shadow-md gap-2 md:gap-4 relative">
         <!-- Left: Logo -->
-        <div class="flex items-center gap-3 shrink-0">
-            <div
-                class="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center text-green-900 font-black text-2xl shadow-sm rotate-3 hover:rotate-12 transition-transform cursor-default">
-                🍌</div>
-            <h1 class="text-xl font-bold text-white tracking-wide hidden md:block">Nano Banana <span
-                    class="text-yellow-300">Studio</span></h1>
+        <div class="flex items-center gap-2 shrink-0">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-yellow-400 rounded-lg md:rounded-xl flex items-center justify-center text-green-900 font-black text-xl md:text-2xl shadow-sm">🍌</div>
+            <h1 class="text-lg md:text-xl font-bold text-white tracking-wide hidden sm:block">Nano Banana</h1>
         </div>
-
+        
         <!-- Center: Nav -->
         <nav class="flex-1 flex justify-center min-w-0">
-            <div
-                class="flex bg-green-900/50 p-1.5 rounded-full border border-green-600/30 backdrop-blur-sm whitespace-nowrap">
-                <button onclick="switchTab('phase1')" id="tab-phase1"
-                    class="px-3 md:px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2">
-                    <i data-lucide="beaker" class="w-4 h-4"></i> <span class="hidden sm:inline">靈感實驗室</span>
+            <div class="flex bg-green-900/50 p-1 rounded-full border border-green-600/30 backdrop-blur-sm whitespace-nowrap overflow-x-auto no-scrollbar">
+                <button onclick="switchTab('phase1')" id="tab-phase1" class="px-3 md:px-6 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-bold transition-all duration-300 flex items-center gap-1.5">
+                    <i data-lucide="beaker" class="w-3 h-3 md:w-4 md:h-4"></i> <span>靈感</span>
                 </button>
-                <button onclick="switchTab('phase2')" id="tab-phase2"
-                    class="px-3 md:px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2">
-                    <i data-lucide="image" class="w-4 h-4"></i> <span class="hidden sm:inline">影像工作室</span>
+                <button onclick="switchTab('phase2')" id="tab-phase2" class="px-3 md:px-6 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-bold transition-all duration-300 flex items-center gap-1.5">
+                    <i data-lucide="image" class="w-3 h-3 md:w-4 md:h-4"></i> <span>影像</span>
                 </button>
             </div>
         </nav>
 
         <!-- Right: Controls -->
-        <div class="flex items-center gap-2 md:gap-3 shrink-0">
-            <!-- GitHub Link (Replace # with your URL) -->
-            <a href="https://github.com/Kay2cat/Nano-Banana-Air" target="_blank"
-                class="p-2 rounded-full bg-green-700/50 hover:bg-black hover:text-white text-green-100 transition relative group hidden sm:flex"
-                title="View on GitHub">
-                <i data-lucide="github" class="w-5 h-5"></i>
-            </a>
-
-            <button onclick="showLastToast()"
-                class="p-2 rounded-full bg-green-700/50 hover:bg-green-600 text-green-100 hover:text-white transition relative group"
-                title="顯示最後通知">
-                <i data-lucide="bell" class="w-5 h-5"></i>
-            </button>
+        <div class="flex items-center gap-2 shrink-0">
+            <button onclick="showLastToast()" class="p-1.5 md:p-2 rounded-full bg-green-700/50 text-green-100" title="通知"><i data-lucide="bell" class="w-4 h-4 md:w-5 md:h-5"></i></button>
+            
+            <button onclick="toggleMobileKeyInput()" class="md:hidden p-1.5 rounded-full bg-green-700/50 text-green-100"><i data-lucide="key" class="w-4 h-4"></i></button>
 
             <div class="relative group hidden md:block">
-                <input type="password" id="apiKeyInput" placeholder="輸入 Google API Key" autocomplete="new-password"
-                    class="bg-green-700/50 border border-green-600 text-white placeholder-green-200/70 text-sm rounded-lg px-4 py-2 w-32 lg:w-48 focus:outline-none focus:bg-green-700 focus:border-yellow-400 transition-all shadow-inner"
-                    title="Key 僅儲存於您的瀏覽器本地端，不會上傳至任何伺服器">
-                <div class="absolute right-3 top-2.5 text-green-200 cursor-pointer hover:text-white"
-                    onclick="toggleApiKeyVisibility()"><i data-lucide="eye" class="w-4 h-4"></i></div>
+                <input type="password" id="apiKeyInput" placeholder="API Key" autocomplete="new-password"
+                    class="bg-green-700/50 border border-green-600 text-white placeholder-green-200/70 text-sm rounded-lg px-3 py-1.5 w-32 focus:outline-none focus:border-yellow-400">
             </div>
-
-            <button onclick="clearAllData()"
-                class="p-2 rounded-full bg-red-900/30 hover:bg-red-600 text-red-200 hover:text-white transition relative group"
-                title="登出並清除所有資料">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-            </button>
-
-            <button onclick="saveApiKey()"
-                class="text-xs bg-green-900 hover:bg-green-700 text-yellow-300 font-bold px-3 py-2.5 rounded-lg transition border border-green-700 whitespace-nowrap">儲存
-                Key</button>
+            
+            <button onclick="saveApiKey()" class="hidden md:block text-xs bg-green-900 hover:bg-green-700 text-yellow-300 font-bold px-3 py-2 rounded-lg border border-green-700">儲存</button>
         </div>
     </header>
 
+    <!-- Mobile Key Input Drawer -->
+    <div id="mobileKeyDrawer" class="hidden bg-green-900 border-b border-green-700 p-3 fixed top-14 left-0 w-full z-40 flex gap-2 shadow-xl">
+        <input type="password" id="mobileApiKeyInput" placeholder="貼上 Key 並按 Enter..." 
+            class="flex-1 bg-green-800 text-white text-base rounded px-3 py-2 border border-green-600 focus:border-yellow-400 outline-none"
+            onkeydown="checkMobileKeyEnter(event)">
+        <button onclick="saveMobileKey()" class="bg-yellow-400 text-green-900 font-bold px-4 py-2 rounded text-sm shrink-0 whitespace-nowrap">儲存</button>
+    </div>
+
     <!-- Phase 1: 靈感實驗室 -->
     <main id="view-phase1" class="tab-content active w-full overflow-hidden bg-slate-50 flex-col md:flex-row relative">
-        <!-- LEFT COLUMN -->
-        <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-10 bg-white order-2 md:order-1 relative"
-            id="styleContainer">
-            <div class="mb-6">
-                <h2 class="text-2xl font-black text-slate-800 flex items-center gap-2"><span class="text-3xl">🎨</span>
-                    風格實驗室</h2>
-                <p class="text-slate-500 text-sm mt-1">每一類別僅能選擇一種風格，避免指令衝突。</p>
-            </div>
-            <div id="taxonomyContainer"></div>
-            <!-- Footer in Scroll Area -->
-            <div class="h-24 flex items-end justify-center pb-8">
-                <p class="text-slate-300 text-xs font-medium">Nano Banana Studio v1.6 • Open Source on GitHub</p>
-            </div>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div
-            class="w-full md:w-[350px] lg:w-[420px] shrink-0 bg-slate-50 border-l border-slate-200 flex flex-col order-1 md:order-2 z-20 h-[40vh] md:h-full">
-            <div
-                class="p-4 border-b border-slate-200 bg-white/50 backdrop-blur-sm shrink-0 flex justify-between items-center">
+        <div class="w-full md:w-[350px] lg:w-[420px] shrink-0 bg-white md:bg-slate-50 border-b md:border-b-0 md:border-l border-slate-200 flex flex-col order-1 md:order-2 z-20 h-auto md:h-full shadow-sm md:shadow-none">
+             <div class="p-3 md:p-4 border-b border-slate-100 md:border-slate-200 flex justify-between items-center">
                 <label class="text-green-700 text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                    <span class="bg-yellow-300 text-green-900 px-2 py-0.5 rounded text-[10px]">STEP 1</span>
-                    咒語輸入 (Prompt)
+                    <span class="bg-yellow-300 text-green-900 px-1.5 py-0.5 rounded text-[10px]">STEP 1</span>
+                    咒語輸入
                 </label>
-            </div>
+             </div>
 
-            <div class="flex-1 p-4 flex flex-col gap-4 overflow-hidden">
-                <textarea id="builderPrompt"
-                    class="w-full flex-1 bg-white border-2 border-slate-200 rounded-xl p-4 text-base text-slate-800 font-medium focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition-all resize-none placeholder-slate-400"
-                    placeholder="在此輸入主要描述... (例如：一隻戴著墨鏡的鳳梨)"></textarea>
+             <div class="p-3 md:p-4 flex flex-col gap-3">
+                <textarea id="builderPrompt" rows="3"
+                    class="w-full bg-slate-50 md:bg-white border border-slate-300 md:border-slate-200 rounded-xl p-3 text-base text-slate-800 font-medium focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 transition-all resize-none placeholder-slate-400"
+                    placeholder="輸入描述... (例如：一隻戴著墨鏡的鳳梨)"></textarea>
 
-                <div class="shrink-0">
-                    <label
-                        class="flex items-center gap-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl cursor-pointer hover:bg-indigo-100 transition-colors group/check">
-                        <input type="checkbox" id="anatomyFixCheck"
-                            class="custom-checkbox w-5 h-5 border-2 border-indigo-300 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                        <div class="text-sm text-indigo-700 transition-colors">
-                            <span class="block font-bold flex items-center gap-2"><i data-lucide="sparkles"
-                                    class="w-4 h-4"></i> 強制修復人體/細節</span>
-                        </div>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="anatomyFixCheck" class="custom-checkbox w-4 h-4 border-2 border-indigo-300 rounded text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-xs font-bold text-indigo-700">修復人體</span>
                     </label>
+                    <span id="tagCountBadge" class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-1 rounded-full">已選 0</span>
                 </div>
-
-                <div class="shrink-0 bg-green-50 rounded-lg p-3 border border-green-100">
-                    <div class="text-[10px] uppercase font-bold text-green-600 mb-1 flex items-center justify-between">
-                        <span>已選風格 (Active Tags)</span>
-                        <span id="tagCountBadge" class="bg-green-200 text-green-800 px-1.5 rounded-full">0</span>
-                    </div>
-                    <div id="selectedTagsPreview"
-                        class="text-xs text-slate-500 italic h-8 overflow-y-auto leading-relaxed">
-                        (尚未選擇任何風格)
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 border-t border-slate-200 bg-white shrink-0">
-                <button onclick="transferToPhase2()"
-                    class="w-full bg-yellow-400 hover:bg-yellow-300 text-green-900 font-black px-6 py-4 rounded-xl flex items-center justify-center gap-2 shadow-[0_4px_0_rgb(202,138,4)] hover:shadow-[0_2px_0_rgb(202,138,4)] hover:translate-y-[2px] transition-all">
-                    組合並去生成 <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                
+                <button onclick="transferToPhase2()" class="w-full bg-yellow-400 hover:bg-yellow-300 text-green-900 font-black px-4 py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all">
+                    去生成圖片 <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
-            </div>
+             </div>
         </div>
 
-        <div id="styleTooltip"
-            class="fixed hidden z-50 bg-slate-800 text-white p-4 rounded-xl shadow-2xl max-w-xs border border-slate-600 pointer-events-none">
-            <h4 id="tooltipTitle" class="font-bold text-yellow-400 text-lg mb-1">Title</h4>
-            <p id="tooltipDesc" class="text-xs text-slate-300 leading-relaxed">Description goes here.</p>
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 md:bg-white order-2 md:order-1 relative pb-20" id="styleContainer">
+            <div class="mb-4 md:mb-6">
+                <h2 class="text-lg md:text-2xl font-black text-slate-800 flex items-center gap-2"><span class="text-2xl md:text-3xl">🎨</span> 風格實驗室</h2>
+                <p class="text-slate-500 text-xs md:text-sm mt-1">點擊選擇風格 (每類單選)</p>
+            </div>
+            <div id="taxonomyContainer" class="space-y-6"></div>
         </div>
     </main>
 
     <!-- Phase 2: 影像工作室 -->
-    <main id="view-phase2" class="tab-content w-full flex-row overflow-hidden bg-slate-100">
-        <aside
-            class="w-80 md:w-96 bg-white border-r border-slate-200 flex flex-col overflow-y-auto p-6 gap-6 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+    <main id="view-phase2" class="tab-content w-full flex-col md:flex-row overflow-hidden bg-slate-100">
+        <aside class="w-full md:w-80 lg:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col p-4 md:p-6 gap-4 shrink-0 shadow-sm z-10 h-auto md:h-full overflow-y-auto max-h-[40vh] md:max-h-full">
             <div class="space-y-2">
-                <label
-                    class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-                    <span class="flex items-center gap-2 text-green-700"><i data-lucide="sparkles"
-                            class="w-4 h-4 text-yellow-500"></i> 最終提示詞</span>
-                    <button onclick="switchTab('phase1')"
-                        class="text-[10px] text-green-600 hover:text-green-800 font-bold hover:underline bg-green-50 px-2 py-1 rounded">←
-                        回實驗室</button>
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <span class="flex items-center gap-2 text-green-700"><i data-lucide="sparkles" class="w-3 h-3 text-yellow-500"></i> 最終提示詞</span>
+                    <button onclick="switchTab('phase1')" class="text-[10px] text-green-600 bg-green-50 px-2 py-1 rounded">修改</button>
                 </label>
-                <textarea id="promptInput" rows="6"
-                    class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-yellow-400 focus:bg-white transition-colors resize-none placeholder-slate-400 text-slate-700"></textarea>
+                <textarea id="promptInput" rows="3" 
+                    class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-base md:text-sm focus:outline-none focus:border-yellow-400 resize-none text-slate-700"></textarea>
             </div>
-
-            <div class="space-y-2">
-                <label
-                    class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
-                    <span class="flex items-center gap-2"><i data-lucide="image" class="w-4 h-4 text-blue-500"></i> 參考圖
-                        (選填)</span>
-                    <button onclick="clearRefImage()" id="clearRefBtn"
-                        class="hidden text-xs text-red-500 hover:text-red-700 font-bold">清除 X</button>
-                </label>
-                <div id="dropZone"
-                    class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center cursor-pointer hover:border-yellow-400 hover:bg-yellow-50/50 transition relative group bg-slate-50">
-                    <input type="file" id="imageInput" accept="image/*"
-                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                    <div id="uploadPlaceholder"
-                        class="flex flex-col items-center gap-2 py-2 text-slate-400 group-hover:text-green-700 transition-colors">
-                        <i data-lucide="upload-cloud" class="w-8 h-8"></i>
-                        <span class="text-xs font-medium">拖放圖片或點擊上傳</span>
+            
+            <div class="grid grid-cols-2 md:grid-cols-1 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase flex justify-between">
+                        <span>參考圖</span>
+                        <button onclick="clearRefImage()" id="clearRefBtn" class="hidden text-xs text-red-500">清除</button>
+                    </label>
+                    <div id="dropZone" class="border-2 border-dashed border-slate-300 rounded-lg p-2 md:p-4 text-center relative group bg-slate-50 h-24 md:h-auto flex flex-col justify-center items-center">
+                        <input type="file" id="imageInput" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 z-10">
+                        <div id="uploadPlaceholder" class="flex flex-col items-center gap-1 text-slate-400">
+                            <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                            <span class="text-[10px]">上傳圖片</span>
+                        </div>
+                        <img id="refImagePreview" class="hidden w-full h-full object-contain rounded">
                     </div>
-                    <img id="refImagePreview"
-                        class="hidden w-full h-auto rounded-lg shadow-md object-contain max-h-48 mx-auto">
                 </div>
-                <details class="group bg-blue-50 rounded-lg p-3 text-xs text-slate-600 open:ring-2 open:ring-blue-100">
-                    <summary
-                        class="cursor-pointer font-bold text-blue-700 flex items-center gap-1 list-none select-none">
-                        <i data-lucide="info" class="w-3 h-3"></i> 關於參考圖與風格衝突
-                        <span class="ml-auto transition-transform group-open:rotate-180">▼</span>
-                    </summary>
-                    <div class="mt-2 pl-4 border-l-2 border-blue-200 space-y-2 leading-relaxed">
-                        <p>1. <span class="font-bold text-blue-800">優先級</span>：提示詞風格 > 參考圖風格。</p>
-                        <p>2. <span class="font-bold text-blue-800">作用</span>：參考構圖與顏色。</p>
-                    </div>
-                </details>
-            </div>
 
-            <div class="space-y-4 pt-6 border-t border-slate-100">
-                <!-- Aspect Ratio -->
-                <div>
-                    <label class="text-xs font-bold text-slate-400 block mb-2">長寬比 (Ratio)</label>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">比例</label>
                     <div class="relative">
-                        <select id="aspectRatio"
-                            class="w-full appearance-none bg-slate-50 border-2 border-slate-200 text-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-500 cursor-pointer font-medium">
-                            <option value="1:1">1:1 (正方形)</option>
-                            <option value="16:9">16:9 (風景)</option>
-                            <option value="9:16">9:16 (手機)</option>
-                            <option value="4:3">4:3 (標準)</option>
+                        <select id="aspectRatio" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 rounded-lg px-3 py-2 text-base md:text-sm focus:outline-none focus:border-green-500">
+                            <option value="1:1">1:1 (正方)</option>
                             <option value="3:4">3:4 (直式)</option>
+                            <option value="9:16">9:16 (手機)</option>
+                            <option value="4:3">4:3 (橫式)</option>
+                            <option value="16:9">16:9 (寬螢幕)</option>
                         </select>
-                        <i data-lucide="chevron-down"
-                            class="absolute right-3 top-3 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                        <i data-lucide="chevron-down" class="absolute right-2 top-2.5 w-3 h-3 text-slate-400 pointer-events-none"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-auto pt-6">
-                <button id="generateBtn" onclick="generateImage()"
-                    class="w-full bg-yellow-400 hover:bg-yellow-300 text-green-900 font-black py-4 rounded-xl shadow-[0_4px_0_rgb(202,138,4)] active:shadow-none active:translate-y-[4px] flex items-center justify-center gap-2 transition-all transform group">
-                    <i data-lucide="zap" class="w-5 h-5 group-hover:scale-110 transition-transform"></i> 開始生成
+            <div class="mt-auto pt-2 md:pt-6">
+                <button id="generateBtn" onclick="generateImage()" 
+                    class="w-full bg-yellow-400 hover:bg-yellow-300 text-green-900 font-black py-3 md:py-4 rounded-xl shadow-sm active:scale-[0.98] flex items-center justify-center gap-2 transition-all">
+                    <i data-lucide="zap" class="w-4 h-4 md:w-5 md:h-5"></i> 開始生成
                 </button>
             </div>
         </aside>
 
-        <section class="flex-1 flex flex-col bg-slate-100 relative min-w-0">
-            <div class="flex-1 flex items-center justify-center p-8 overflow-hidden relative" id="canvasContainer">
-                <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
-                    style="background-image: radial-gradient(#15803d 1px, transparent 1px); background-size: 24px 24px;">
+        <section class="flex-1 flex flex-col bg-slate-100 relative min-w-0 h-full overflow-hidden">
+            <div class="flex-1 flex items-center justify-center p-4 md:p-8 overflow-hidden relative" id="canvasContainer">
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#15803d 1px, transparent 1px); background-size: 24px 24px;"></div>
+                
+                <div id="welcomeState" class="text-center text-slate-400 max-w-xs relative z-10">
+                    <div class="mb-4 inline-block p-4 md:p-6 rounded-full bg-white border-4 border-slate-100 shadow-sm"><i data-lucide="palette" class="w-10 h-10 md:w-12 md:h-12 text-yellow-400"></i></div>
+                    <h2 class="text-lg md:text-xl font-bold text-slate-700 mb-1">準備創作</h2>
+                    <p class="text-xs md:text-sm text-slate-500">設定參數後點擊生成</p>
+                </div>
+                
+                <div id="loadingState" class="hidden absolute inset-0 bg-white/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
+                    <div class="loader mb-4"></div>
+                    <p class="text-green-700 font-bold text-sm md:text-lg animate-pulse">正在調製奈米香蕉...</p>
+                    <p class="text-slate-400 font-mono text-xs mt-2 bg-slate-100 px-3 py-1 rounded-full" id="loadingTime">0.0s</p>
                 </div>
 
-                <div id="welcomeState" class="text-center text-slate-400 max-w-md relative z-10">
-                    <div class="mb-6 inline-block p-8 rounded-full bg-white border-4 border-slate-100 shadow-sm"><i
-                            data-lucide="palette" class="w-16 h-16 text-yellow-400"></i></div>
-                    <h2 class="text-2xl font-bold text-slate-700 mb-2">準備好創作了嗎？</h2>
-                    <p class="text-slate-500">請確認左側提示詞與畫質設定，點擊「開始生成」。</p>
-                </div>
-
-                <div id="loadingState"
-                    class="hidden absolute inset-0 bg-white/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm">
-                    <div class="loader mb-6"></div>
-                    <p class="text-green-700 font-bold text-lg animate-pulse">正在調製奈米香蕉...</p>
-                    <p class="text-slate-400 font-mono text-sm mt-2 bg-slate-100 px-3 py-1 rounded-full"
-                        id="loadingTime">0.0s</p>
-                </div>
-
-                <div id="resultContainer"
-                    class="hidden relative group w-full h-full flex items-center justify-center p-4">
-                    <div class="relative max-w-full max-h-full cursor-zoom-in" onclick="openLightbox()">
-                        <img id="generatedImage"
-                            class="max-w-full max-h-full rounded-lg shadow-2xl object-contain border-4 border-white bg-[url('https://www.transparenttextures.com/patterns/checkerboard-white.png')]"
-                            src="" alt="Generated Content">
-                        <div
-                            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-lg pointer-events-none">
-                            <span
-                                class="bg-black/60 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 backdrop-blur-sm">
-                                <i data-lucide="maximize-2" class="w-3 h-3"></i> 點擊放大
-                            </span>
-                        </div>
+                <div id="resultContainer" class="hidden relative group w-full h-full flex items-center justify-center">
+                    <div class="relative w-full h-full flex items-center justify-center" onclick="openLightbox()">
+                        <img id="generatedImage" class="max-w-full max-h-full rounded-lg shadow-xl object-contain border-2 border-white bg-[url('https://www.transparenttextures.com/patterns/checkerboard-white.png')]" src="" alt="Generated Content">
                     </div>
-
-                    <div
-                        class="absolute bottom-8 flex gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0 bg-white/90 p-2 rounded-2xl shadow-xl backdrop-blur border border-white z-20">
-                        <button onclick="downloadImage()"
-                            class="p-3 hover:bg-green-50 rounded-xl text-slate-600 hover:text-green-700 transition tooltip"
-                            title="下載大圖 (Original)"><i data-lucide="download" class="w-6 h-6"></i></button>
-                        <button onclick="useAsReference()"
-                            class="p-3 hover:bg-blue-50 rounded-xl text-slate-600 hover:text-blue-600 transition tooltip"
-                            title="用作參考圖 (Remix)"><i data-lucide="refresh-ccw" class="w-6 h-6"></i></button>
-                        <button onclick="copyToClipboard()"
-                            class="p-3 hover:bg-yellow-50 rounded-xl text-slate-600 hover:text-yellow-600 transition tooltip"
-                            title="複製圖片"><i data-lucide="copy" class="w-6 h-6"></i></button>
+                    
+                    <div class="absolute bottom-4 flex gap-2 md:gap-3 bg-white/90 p-1.5 md:p-2 rounded-xl shadow-lg backdrop-blur border border-white z-20">
+                        <button onclick="downloadImage()" class="p-2 hover:bg-green-50 rounded-lg text-slate-600 hover:text-green-700" title="下載/分享"><i data-lucide="download" class="w-5 h-5"></i></button>
+                        <button onclick="useAsReference()" class="p-2 hover:bg-blue-50 rounded-lg text-slate-600 hover:text-blue-600" title="重繪"><i data-lucide="refresh-ccw" class="w-5 h-5"></i></button>
+                        <button onclick="copyToClipboard()" class="p-2 hover:bg-yellow-50 rounded-lg text-slate-600 hover:text-yellow-600" title="複製"><i data-lucide="copy" class="w-5 h-5"></i></button>
                     </div>
                 </div>
             </div>
-
-            <div class="h-36 bg-white border-t border-slate-200 p-4 shrink-0 flex items-center gap-4 overflow-x-auto shadow-[0_-4px_24px_rgba(0,0,0,0.03)] z-10"
-                id="gallery">
-                <div class="text-sm text-slate-400 font-medium italic px-6 flex items-center gap-2">
-                    <i data-lucide="history" class="w-4 h-4"></i> 歷史記錄 <span
-                        class="text-xs text-slate-300 ml-1">(重新整理後清空)</span>
+            
+            <div class="h-24 md:h-36 bg-white border-t border-slate-200 p-3 md:p-4 shrink-0 flex items-center gap-3 md:gap-4 overflow-x-auto no-scrollbar shadow-inner z-10" id="gallery">
+                <div class="text-xs md:text-sm text-slate-400 font-medium italic px-2 md:px-6 flex flex-col md:flex-row items-center gap-1 md:gap-2 text-center whitespace-nowrap">
+                    <i data-lucide="history" class="w-4 h-4"></i> <span>歷史紀錄</span>
                 </div>
             </div>
         </section>
     </main>
 
-    <div id="lightbox" class="fixed inset-0 z-[100] bg-slate-900/95 flex items-center justify-center p-4 hidden"
-        onclick="closeLightbox()">
-        <button class="absolute top-6 right-6 text-white/50 hover:text-white transition p-2 bg-white/10 rounded-full">
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 hidden" onclick="closeLightbox()">
+        <button class="absolute top-4 right-4 text-white/70 hover:text-white p-2">
             <i data-lucide="x" class="w-8 h-8"></i>
         </button>
-        <img id="lightboxImage" src=""
-            class="max-w-full max-h-[90vh] object-contain rounded shadow-2xl scale-95 opacity-0 transition-all duration-300">
+        <img id="lightboxImage" src="" class="max-w-full max-h-[90vh] object-contain">
     </div>
 
-    <!-- Notification Toast (Click to Dismiss if Error) -->
-    <div id="toast" onclick="dismissToast()"
-        class="fixed top-6 right-6 bg-white border-l-4 border-yellow-400 text-slate-800 px-6 py-4 rounded-r-lg shadow-2xl transform translate-x-full transition-transform duration-300 z-[100] flex items-center gap-4 min-w-[300px] cursor-pointer">
-        <div id="toastIconContainer" class="p-2 bg-slate-50 rounded-full"><i data-lucide="info" id="toastIcon"
-                class="text-slate-500"></i></div>
+    <!-- Notification Toast -->
+    <div id="toast" onclick="dismissToast()" class="fixed top-4 right-4 md:top-6 md:right-6 bg-white border-l-4 border-yellow-400 text-slate-800 px-4 py-3 md:px-6 md:py-4 rounded-r-lg shadow-2xl transform translate-x-full transition-transform duration-300 z-[100] flex items-center gap-3 md:gap-4 max-w-[90vw] md:min-w-[300px] cursor-pointer">
+        <div id="toastIconContainer" class="p-1.5 md:p-2 bg-slate-50 rounded-full shrink-0"><i data-lucide="info" id="toastIcon" class="w-4 h-4 md:w-5 md:h-5 text-slate-500"></i></div>
         <div>
-            <h4 class="font-bold text-sm text-slate-900" id="toastTitle">通知</h4>
-            <span id="toastMsg" class="text-sm text-slate-500">Message body</span>
+            <h4 class="font-bold text-xs md:text-sm text-slate-900" id="toastTitle">通知</h4>
+            <span id="toastMsg" class="text-xs md:text-sm text-slate-500 line-clamp-2">Message body</span>
         </div>
     </div>
 
     <script>
-        console.log("%cNano Banana Studio 🍌", "color: #fbbf24; font-size: 20px; font-weight: bold;");
-        console.log("Welcome, developer! This project is open source.");
-
+        // --- 1. FULL Data Restored ---
         const taxonomyData = {
             "構圖 (Composition)": {
                 icon: "crop", color: "purple",
                 items: [
-                    { tag: "Full body shot", label: "🧍 全身構圖", desc: "確保從頭到腳都完整包含在畫面內，不會切到腳部。" },
-                    { tag: "Upper body shot", label: "👤 半身構圖", desc: "專注於腰部以上，適合展現表情與上半身動作。" },
-                    { tag: "Wide shot, environmental", label: "🏞️ 廣角大景", desc: "人小景大，強調環境氛圍與背景細節。" },
-                    { tag: "Action shot, dynamic pose", label: "🏃 動態瞬間", desc: "捕捉高速運動中的瞬間，強調力量感與速度線。" }
+                    { tag: "Full body shot", label: "🧍 全身構圖", desc: "確保從頭到腳都完整" },
+                    { tag: "Upper body shot", label: "👤 半身構圖", desc: "專注於腰部以上" },
+                    { tag: "Wide shot, environmental", label: "🏞️ 廣角大景", desc: "人小景大，強調環境" },
+                    { tag: "Action shot, dynamic pose", label: "🏃 動態瞬間", desc: "捕捉高速運動瞬間" }
                 ]
             },
             "藝術風格 (Style)": {
                 icon: "palette", color: "green",
                 items: [
-                    { tag: "Photorealistic, 8k", label: "📸 超寫實攝影", desc: "如同用高階單眼相機拍攝，追求極致的真實感、毛孔與光影細節。" },
-                    { tag: "Cyberpunk style, neon lights", label: "🤖 賽博龐克", desc: "高科技低生活的未來反烏托邦風格，充滿霓虹燈、機械義肢與雨夜街道。" },
-                    { tag: "Anime style, Studio Ghibli inspired", label: "🎌 日系動漫", desc: "類似宮崎駿吉卜力工作室的手繪風格，色彩飽和、筆觸溫暖且富有童趣。" },
-                    { tag: "Oil painting, thick impasto", label: "🎨 油畫質感", desc: "厚塗顏料的質感，強調筆觸的立體感與色彩的堆疊，如梵谷作品。" },
-                    { tag: "3D render, Octane render", label: "🧊 3D 渲染", desc: "電腦生成圖像 (CGI)，具有完美的光滑表面、物理正確的光線反射。" },
-                    { tag: "Watercolor, soft edges", label: "💧 水彩風格", desc: "水彩暈染的通透感，邊緣柔和，色彩淡雅，適合夢幻或插畫氛圍。" },
-                    { tag: "Pop Art, vibrant colors", label: "🍭 普普藝術", desc: "高對比、鮮豔色彩、重複圖形，類似安迪·沃荷的商業藝術風格。" },
-                    { tag: "Pixel art, 16-bit", label: "👾 像素藝術", desc: "復古 8-bit 或 16-bit 電玩風格，由明顯的色塊點陣組成。" },
-                    { tag: "Steampunk, brass and gears", label: "⚙️ 蒸氣龐克", desc: "維多利亞時代的工業科幻風格，充滿黃銅、齒輪、蒸氣機械與護目鏡元素。" },
-                    { tag: "Concept Art, digital painting", label: "🎮 概念藝術", desc: "電影或遊戲前期設計圖風格，筆觸俐落，構圖大氣，強調氛圍與設計感。" },
-                    { tag: "Ink Wash Painting, sumi-e", label: "🖌️ 水墨畫", desc: "東方傳統藝術風格，利用黑白墨色的濃淡變化展現意境，留白是重要特色。" },
-                    { tag: "Low Poly, geometric", label: "🔷 低多邊形", desc: "由幾何多邊形組成的極簡 3D 風格，色彩鮮明，具有獨特的稜角感。" },
-                    { tag: "Paper Cut Craft, layered", label: "✂️ 剪紙藝術", desc: "模擬多層紙張堆疊的效果，利用陰影創造深度，質感細膩且富有層次。" },
-                    { tag: "Surrealism, dreamlike", label: "👁️ 超現實主義", desc: "如夢境般不合邏輯的畫面，結合現實與幻想，像達利或馬格利特的作品。" },
-                    { tag: "Graffiti, street art", label: "🤘 街頭塗鴉", desc: "城市街頭風格，使用噴漆質感、大膽的配色與誇張的字體設計。" },
-                    { tag: "Claymation, stop motion", label: "🧱 黏土動畫", desc: "模仿黏土捏塑的定格動畫質感，具有獨特的手工痕跡與材質感。" }
+                    { tag: "Photorealistic, 8k", label: "📸 超寫實", desc: "極致真實感" },
+                    { tag: "Cyberpunk style", label: "🤖 賽博", desc: "霓虹科技感" },
+                    { tag: "Anime style", label: "🎌 動漫", desc: "日系手繪風" },
+                    { tag: "Oil painting", label: "🎨 油畫", desc: "厚塗質感" },
+                    { tag: "3D render", label: "🧊 3D", desc: "CGI 渲染質感" },
+                    { tag: "Watercolor", label: "💧 水彩", desc: "柔和暈染" },
+                    { tag: "Pop Art", label: "🍭 普普", desc: "高對比色彩" },
+                    { tag: "Pixel art", label: "👾 像素", desc: "復古電玩風" },
+                    // Restored Items:
+                    { tag: "Steampunk", label: "⚙️ 蒸氣", desc: "維多利亞機械風" },
+                    { tag: "Concept Art", label: "🎮 概念", desc: "遊戲設計圖" },
+                    { tag: "Ink Wash Painting", label: "🖌️ 水墨", desc: "東方水墨畫" },
+                    { tag: "Low Poly", label: "🔷 低多邊形", desc: "幾何極簡風" },
+                    { tag: "Paper Cut Craft", label: "✂️ 剪紙", desc: "層疊紙藝" },
+                    { tag: "Surrealism", label: "👁️ 超現實", desc: "夢境幻想" },
+                    { tag: "Graffiti", label: "🤘 塗鴉", desc: "街頭噴漆" },
+                    { tag: "Claymation", label: "🧱 黏土", desc: "定格動畫感" }
                 ]
             },
             "光影氛圍 (Lighting)": {
                 icon: "sun", color: "yellow",
                 items: [
-                    { tag: "Cinematic lighting, dramatic shadows", label: "🎬 電影級燈光", desc: "強調明暗對比 (Chiaroscuro)，營造戲劇張力與故事感。" },
-                    { tag: "Natural sunlight, soft shadows", label: "☀️ 自然陽光", desc: "模仿白天的自然光線，陰影柔和，給人真實舒適的感覺。" },
-                    { tag: "Golden hour, warm tones", label: "🌅 黃金時刻", desc: "日出或日落時分的溫暖金黃色光線，充滿浪漫與懷舊感。" },
-                    { tag: "Neon lighting, rim light", label: "💡 霓虹邊緣光", desc: "物體邊緣被彩色光線勾勒（輪廓光），常見於科技或夜景主題。" },
-                    { tag: "Volumetric lighting, god rays", label: "🌫️ 體積光", desc: "光線穿過霧氣或塵埃形成的可見光束（耶穌光），增加空間的神聖感。" },
-                    { tag: "Soft pastel lighting", label: "🌸 柔和粉彩光", desc: "低對比度、粉嫩色調的光線，營造溫柔、夢幻或少女風格。" }
+                    { tag: "Cinematic lighting", label: "🎬 電影", desc: "戲劇張力光影" },
+                    { tag: "Natural sunlight", label: "☀️ 自然", desc: "白天柔和光線" },
+                    { tag: "Golden hour", label: "🌅 黃金", desc: "日落溫暖光" },
+                    { tag: "Neon lighting", label: "💡 霓虹", desc: "彩色輪廓光" },
+                    { tag: "Volumetric lighting", label: "🌫️ 體積", desc: "耶穌光束" },
+                    { tag: "Soft pastel lighting", label: "🌸 粉彩", desc: "夢幻柔光" }
                 ]
             },
             "鏡頭視角 (Camera)": {
                 icon: "camera", color: "blue",
                 items: [
-                    { tag: "Wide angle lens, fisheye", label: "🔭 廣角/魚眼", desc: "視野極寬，畫面邊緣可能變形，能容納壯闊的大景。" },
-                    { tag: "Macro photography", label: "🔍 微距特寫", desc: "極近距離拍攝，能看清昆蟲複眼或水滴細節，背景通常模糊。" },
-                    { tag: "Bokeh, depth of field", label: "🌫️ 景深模糊", desc: "主體清晰，背景虛化成光斑 (Bokeh)，用來凸顯主角。" },
-                    { tag: "Isometric view", label: "📐 等距視角", desc: "2.5D 遊戲視角，物體沒有近大遠小的透視，適合展示建築或房間結構。" },
-                    { tag: "Ground level shot, side view, focus on motion", label: "⬇️ 低角度 (側拍/地面)", desc: "貼近地面的視角，強調鞋子或車輪的速度感，避免由下往上的仰角以符合安全規範。" },
-                    { tag: "High-angle shot looking down", label: "🔭 高角度俯視", desc: "由上往下的視角，強調地面的細節與主體的相對位置（避免主體浮空）。" },
-                    { tag: "Low angle shot", label: "⬇️ 低角度仰拍", desc: "相機位置極低向上拍攝，讓主體看起來巨大、威嚴或具壓迫感。" }
+                    { tag: "Wide angle", label: "🔭 廣角", desc: "視野極寬" },
+                    { tag: "Macro", label: "🔍 微距", desc: "極近距離特寫" },
+                    { tag: "Bokeh", label: "🌫️ 景深", desc: "背景模糊" },
+                    { tag: "Isometric", label: "📐 2.5D", desc: "等距視角" },
+                    { tag: "High-angle shot", label: "🔭 俯視", desc: "由上往下拍" },
+                    { tag: "Low angle shot", label: "⬇️ 仰拍", desc: "由下往上拍" }
                 ]
             }
         };
@@ -514,11 +326,13 @@
         const state = {
             apiKey: '', refImageBase64: null, refImageMimeType: null, history: [],
             currentTab: 'phase1', selectedTags: {}, lastToastData: null, toastTimer: null,
-            abortController: null
+            abortController: null 
         };
 
         const els = {
             apiKeyInput: document.getElementById('apiKeyInput'),
+            mobileApiKeyInput: document.getElementById('mobileApiKeyInput'),
+            mobileKeyDrawer: document.getElementById('mobileKeyDrawer'),
             promptInput: document.getElementById('promptInput'),
             builderPrompt: document.getElementById('builderPrompt'),
             imageInput: document.getElementById('imageInput'),
@@ -542,33 +356,39 @@
             selectedTagsPreview: document.getElementById('selectedTagsPreview'),
             tagCountBadge: document.getElementById('tagCountBadge'),
             taxonomyContainer: document.getElementById('taxonomyContainer'),
-            styleTooltip: document.getElementById('styleTooltip'),
-            tooltipTitle: document.getElementById('tooltipTitle'),
-            tooltipDesc: document.getElementById('tooltipDesc'),
             lightbox: document.getElementById('lightbox'),
             lightboxImage: document.getElementById('lightboxImage'),
             anatomyFixCheck: document.getElementById('anatomyFixCheck')
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderTaxonomy();
+            renderTaxonomy(); 
             lucide.createIcons();
             loadApiKey();
             setupDragAndDrop();
             switchTab('phase1');
-            setupTooltip();
         });
 
-        function openLightbox() {
-            if (!els.generatedImage.src) return;
-            els.lightboxImage.src = els.generatedImage.src;
-            els.lightbox.classList.remove('hidden');
-            setTimeout(() => { els.lightboxImage.classList.remove('scale-95', 'opacity-0'); }, 10);
+        // --- Logic ---
+        function toggleMobileKeyInput() {
+            els.mobileKeyDrawer.classList.toggle('hidden');
+            if (!els.mobileKeyDrawer.classList.contains('hidden')) els.mobileApiKeyInput.focus();
         }
 
-        function closeLightbox() {
-            els.lightboxImage.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => { els.lightbox.classList.add('hidden'); els.lightboxImage.src = ''; }, 300);
+        function checkMobileKeyEnter(event) {
+            if (event.key === 'Enter') { event.preventDefault(); saveMobileKey(); }
+        }
+
+        function saveMobileKey() {
+            const key = els.mobileApiKeyInput.value.trim();
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                state.apiKey = key;
+                els.apiKeyInput.value = key; 
+                showToast('API Key 已儲存', 'success');
+                toggleMobileKeyInput();
+                els.mobileApiKeyInput.blur();
+            }
         }
 
         function renderTaxonomy() {
@@ -576,21 +396,17 @@
             Object.entries(taxonomyData).forEach(([catName, catData]) => {
                 const section = document.createElement('div');
                 section.innerHTML = `
-                    <h3 class="text-green-800 text-lg font-bold mb-4 flex items-center gap-2 border-b-2 border-green-100 pb-2 sticky top-0 bg-white z-10 py-2">
-                        <span class="bg-${catData.color}-100 p-1.5 rounded-lg"><i data-lucide="${catData.icon}" class="w-5 h-5 text-${catData.color}-600"></i></span>
+                    <h3 class="text-green-800 text-sm md:text-base font-bold mb-3 flex items-center gap-2 border-b-2 border-green-100 pb-2">
+                        <span class="bg-${catData.color}-100 p-1 rounded-lg"><i data-lucide="${catData.icon}" class="w-4 h-4 text-${catData.color}-600"></i></span>
                         ${catName}
                     </h3>
-                    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-10">
-                    </div>
+                    <div class="grid grid-cols-3 md:grid-cols-4 gap-2 mb-6"></div>
                 `;
                 const grid = section.querySelector('.grid');
                 catData.items.forEach(item => {
                     const btn = document.createElement('button');
-                    btn.className = 'tag-btn p-3 rounded-xl text-left text-sm relative group/btn';
+                    btn.className = 'tag-btn p-2 rounded-lg text-left text-xs md:text-sm relative group/btn h-full flex items-center';
                     btn.textContent = item.label;
-                    btn.setAttribute('data-category', catName);
-                    btn.setAttribute('data-title', item.label);
-                    btn.setAttribute('data-desc', item.desc);
                     btn.onclick = () => toggleTag(btn, catName, item.tag);
                     grid.appendChild(btn);
                 });
@@ -598,40 +414,22 @@
             });
         }
 
-        function setupTooltip() {
-            els.taxonomyContainer.addEventListener('mouseover', (e) => {
-                const btn = e.target.closest('.tag-btn');
-                if (btn) {
-                    const title = btn.getAttribute('data-title');
-                    const desc = btn.getAttribute('data-desc');
-                    els.tooltipTitle.textContent = title.split(' ')[1] || title;
-                    els.tooltipDesc.textContent = desc;
-                    els.styleTooltip.classList.remove('hidden');
-                    updateTooltipPos(e);
-                }
-            });
-            els.taxonomyContainer.addEventListener('mousemove', (e) => { updateTooltipPos(e); });
-            els.taxonomyContainer.addEventListener('mouseout', (e) => { if (e.target.closest('.tag-btn')) els.styleTooltip.classList.add('hidden'); });
-        }
-
-        function updateTooltipPos(e) {
-            const x = e.clientX + 20;
-            const y = e.clientY + 20;
-            els.styleTooltip.style.top = `${y}px`;
-            els.styleTooltip.style.left = `${x}px`;
-        }
-
         function switchTab(tabId) {
             state.currentTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${tabId}`).classList.add('active');
+            
+            const activeClass = ['bg-yellow-400', 'text-green-900', 'shadow-md'];
+            const inactiveClass = ['text-green-100']; 
 
             if (tabId === 'phase1') {
-                els.tab1.className = 'px-4 md:px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 bg-yellow-400 text-green-900 shadow-lg';
-                els.tab2.className = 'px-4 md:px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 text-green-100 hover:text-white hover:bg-green-800';
+                els.tab1.classList.add(...activeClass);
+                els.tab2.classList.remove(...activeClass);
+                els.tab2.classList.add(...inactiveClass);
             } else {
-                els.tab2.className = 'px-4 md:px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 bg-yellow-400 text-green-900 shadow-lg';
-                els.tab1.className = 'px-4 md:px-6 py-1.5 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2 text-green-100 hover:text-white hover:bg-green-800';
+                els.tab2.classList.add(...activeClass);
+                els.tab1.classList.remove(...activeClass);
+                els.tab1.classList.add(...inactiveClass);
             }
         }
 
@@ -641,7 +439,7 @@
                 btn.classList.remove('active');
             } else {
                 state.selectedTags[category] = tag;
-                const buttons = document.querySelectorAll(`button[data-category="${category}"]`);
+                const buttons = btn.parentElement.querySelectorAll('button');
                 buttons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             }
@@ -650,14 +448,8 @@
 
         function updateTagPreview() {
             const tags = Object.values(state.selectedTags).filter(Boolean);
-            els.tagCountBadge.textContent = tags.length;
-            if (tags.length === 0) {
-                els.selectedTagsPreview.textContent = '(尚未選擇任何風格)';
-                els.selectedTagsPreview.className = 'text-xs text-slate-500 italic h-8 overflow-y-auto leading-relaxed';
-            } else {
-                els.selectedTagsPreview.textContent = tags.join(', ');
-                els.selectedTagsPreview.className = 'text-xs text-green-700 font-medium h-8 overflow-y-auto leading-relaxed';
-            }
+            els.tagCountBadge.textContent = tags.length > 0 ? `已選 ${tags.length}` : '已選 0';
+            els.selectedTagsPreview.textContent = tags.length > 0 ? tags.join(', ') : '(尚未選擇)';
         }
 
         function transferToPhase2() {
@@ -677,7 +469,7 @@
             if (state.abortController) state.abortController.abort();
             state.abortController = new AbortController();
             const signal = state.abortController.signal;
-            const timeoutId = setTimeout(() => state.abortController.abort(), 60000);
+            const timeoutId = setTimeout(() => state.abortController.abort(), 60000); 
 
             setLoading(true);
             const startTime = Date.now();
@@ -686,12 +478,12 @@
             try {
                 const model = 'gemini-3-pro-image-preview';
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.apiKey}`;
-
+                
                 let anatomyFix = "";
                 if (els.anatomyFixCheck && els.anatomyFixCheck.checked) {
-                    anatomyFix = ", perfect anatomy, realistic proportions, symmetrical face, correct hands, high quality, 8k, detailed texture";
+                    anatomyFix = ", perfect anatomy, realistic proportions, high quality";
                 }
-
+                
                 const safePrompt = els.promptInput.value + anatomyFix + ` (Aspect Ratio: ${els.aspectRatio.value})`;
                 const parts = [{ text: safePrompt }];
                 if (state.refImageBase64) {
@@ -700,41 +492,24 @@
                     parts.push({ inline_data: { mime_type: mimeType, data: base64Data } });
                 }
 
-                const safetySettings = [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
-                ];
-
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: parts }],
-                        safetySettings: safetySettings
-                    }),
+                    body: JSON.stringify({ contents: [{ parts: parts }] }),
                     signal: signal
                 });
 
                 const data = await response.json();
-
+                
                 if (!response.ok) throw new Error(data.error?.message || 'API Error');
-
-                if (data.candidates && data.candidates.length > 0) {
-                    const candidate = data.candidates[0];
-                    if (candidate.finishReason && candidate.finishReason !== 'STOP') {
-                        throw new Error(`生成終止 (原因: ${candidate.finishReason})。可能觸發安全過濾，請修改提示詞。`);
-                    }
-                }
 
                 let imageBase64 = null;
                 if (data.candidates?.[0]?.content?.parts) {
-                    const part = data.candidates[0].content.parts.find(p => p.inline_data || (p.inlineData));
-                    if (part) {
-                        const inline = part.inline_data || part.inlineData;
-                        imageBase64 = `data:${inline.mime_type};base64,${inline.data}`;
-                    }
+                     const part = data.candidates[0].content.parts.find(p => p.inline_data || (p.inlineData));
+                     if (part) {
+                         const inline = part.inline_data || part.inlineData;
+                         imageBase64 = `data:${inline.mime_type};base64,${inline.data}`;
+                     }
                 }
                 if (!imageBase64 && data.predictions?.[0]?.bytesBase64Encoded) {
                     imageBase64 = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
@@ -745,21 +520,45 @@
                     addToHistory(imageBase64, els.promptInput.value);
                     showToast('生成成功！', 'success');
                 } else {
-                    console.error('API Response Dump:', data);
-                    throw new Error('回應中未找到圖片數據 (請檢查 Console 查看完整回應)');
+                    throw new Error('未找到圖片數據');
                 }
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    showToast('請求逾時 (60s)，請檢查網路或稍後再試', 'error');
-                } else {
-                    console.error(error);
-                    showToast(`錯誤: ${error.message}`, 'error');
-                }
+                if (error.name === 'AbortError') showToast('請求逾時', 'error');
+                else showToast(`錯誤: ${error.message}`, 'error');
             } finally {
                 clearTimeout(timeoutId);
                 clearInterval(timer);
                 setLoading(false);
             }
+        }
+
+        // --- FIXED: Mobile Friendly Download ---
+        async function downloadImage() {
+            if (!els.generatedImage.src) return;
+            const src = els.generatedImage.src;
+
+            // Strategy 1: Web Share API (Best for Mobile)
+            if (navigator.share && navigator.canShare) {
+                try {
+                    // Need to convert Data URI to Blob for sharing
+                    const response = await fetch(src);
+                    const blob = await response.blob();
+                    const file = new File([blob], "nano-banana.png", { type: blob.type });
+                    await navigator.share({ files: [file] });
+                    return;
+                } catch (e) {
+                    console.log('Share failed/cancelled', e);
+                    // Fallback if share fails (e.g. user cancelled)
+                }
+            }
+
+            // Strategy 2: Anchor Tag (Desktop / Fallback)
+            const a = document.createElement('a');
+            a.href = src;
+            a.download = `nano-banana-${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function displayResult(src) {
@@ -770,29 +569,19 @@
 
         function setLoading(isLoading) {
             els.generateBtn.disabled = isLoading;
-            els.generateBtn.innerHTML = isLoading ? '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 生成中...' : '<i data-lucide="zap" class="w-5 h-5"></i> 開始生成';
+            els.generateBtn.innerHTML = isLoading ? '<div class="loader w-4 h-4 border-2"></div> 生成中...' : '<i data-lucide="zap" class="w-4 h-4"></i> 開始生成';
             lucide.createIcons();
             els.loadingState.classList.toggle('hidden', !isLoading);
         }
 
         function setupDragAndDrop() {
             const dz = document.getElementById('dropZone');
-            dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('border-yellow-400', 'bg-yellow-50'); });
-            dz.addEventListener('dragleave', (e) => { e.preventDefault(); dz.classList.remove('border-yellow-400', 'bg-yellow-50'); });
-            dz.addEventListener('drop', (e) => {
-                e.preventDefault(); dz.classList.remove('border-yellow-400', 'bg-yellow-50');
-                if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-            });
             els.imageInput.addEventListener('change', (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
         }
 
         function handleFile(file) {
-            if (!file.type.startsWith('image/')) { showToast('請上傳圖片檔案', 'error'); return; }
-
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('圖片過大 (超過 5MB)，請壓縮後再上傳', 'error');
-                return;
-            }
+            if (!file.type.startsWith('image/')) { showToast('請上傳圖片', 'error'); return; }
+            if (file.size > 5 * 1024 * 1024) { showToast('圖片過大 (>5MB)', 'error'); return; }
 
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -825,29 +614,17 @@
         function renderGallery() {
             els.gallery.innerHTML = '';
             const header = document.createElement('div');
-            header.className = 'text-sm text-slate-400 font-medium italic px-6 flex items-center gap-2 shrink-0';
-            header.innerHTML = '<i data-lucide="history" class="w-4 h-4"></i> 歷史記錄 <span class="text-xs text-slate-300 ml-1">(重新整理後清空)</span>';
+            header.className = 'text-xs md:text-sm text-slate-400 font-medium italic px-2 md:px-6 flex flex-col items-center gap-1 shrink-0';
+            header.innerHTML = '<i data-lucide="history" class="w-4 h-4"></i><span>歷史</span>';
             els.gallery.appendChild(header);
 
             state.history.forEach(item => {
                 const div = document.createElement('div');
-                div.className = 'w-24 h-24 shrink-0 rounded-xl overflow-hidden border-2 border-slate-200 cursor-pointer hover:border-yellow-400 transition relative group shadow-sm';
-
+                div.className = 'w-16 h-16 md:w-24 md:h-24 shrink-0 rounded-lg overflow-hidden border border-slate-200 cursor-pointer relative';
                 const img = document.createElement('img');
                 img.src = item.url;
                 img.className = 'w-full h-full object-cover';
-
-                const overlay = document.createElement('div');
-                overlay.className = 'absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity';
-
-                const span = document.createElement('span');
-                span.className = 'text-[10px] text-white font-bold p-1 text-center bg-black/50 rounded backdrop-blur-sm mx-1 line-clamp-2';
-                span.textContent = item.prompt;
-
-                overlay.appendChild(span);
                 div.appendChild(img);
-                div.appendChild(overlay);
-
                 div.onclick = () => { displayResult(item.url); els.promptInput.value = item.prompt; };
                 els.gallery.appendChild(div);
             });
@@ -864,104 +641,67 @@
             els.refImagePreview.classList.remove('hidden');
             els.uploadPlaceholder.classList.add('hidden');
             els.clearRefBtn.classList.remove('hidden');
-            showToast('已將結果設為參考圖', 'success');
-        }
-
-        function downloadImage() {
-            if (!els.generatedImage.src) return;
-            const a = document.createElement('a');
-            a.href = els.generatedImage.src;
-            a.download = `nano-banana-${Date.now()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            showToast('已設為參考圖', 'success');
         }
 
         async function copyToClipboard() {
-            if (!els.generatedImage.src) return;
-            try {
-                const response = await fetch(els.generatedImage.src);
-                const blob = await response.blob();
-                await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-                showToast('圖片已複製到剪貼簿', 'success');
-            } catch (err) { console.error(err); showToast('複製失敗', 'error'); }
+             if (!els.generatedImage.src) return;
+             try {
+                 const response = await fetch(els.generatedImage.src);
+                 const blob = await response.blob();
+                 await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+                 showToast('已複製', 'success');
+             } catch (err) { console.error(err); showToast('複製失敗', 'error'); }
         }
 
         function saveApiKey() {
             const key = els.apiKeyInput.value.trim();
-            if (key) { localStorage.setItem('gemini_api_key', key); state.apiKey = key; showToast('API Key 已儲存', 'success'); }
-            else { localStorage.removeItem('gemini_api_key'); state.apiKey = ''; showToast('API Key 已清除', 'warning'); }
-        }
-
-        function clearAllData() {
-            localStorage.removeItem('gemini_api_key');
-            state.apiKey = '';
-            els.apiKeyInput.value = '';
-            state.history = [];
-            state.refImageBase64 = null;
-            renderGallery();
-            clearRefImage();
-            showToast('已登出並清除所有暫存資料', 'success');
+            if (key) { 
+                localStorage.setItem('gemini_api_key', key); 
+                state.apiKey = key; 
+                showToast('Key 已儲存', 'success'); 
+            }
         }
 
         function loadApiKey() {
             const key = localStorage.getItem('gemini_api_key');
-            if (key) { els.apiKeyInput.value = key; state.apiKey = key; }
+            if (key) { 
+                els.apiKeyInput.value = key; 
+                els.mobileApiKeyInput.value = key;
+                state.apiKey = key; 
+            }
         }
 
         function toggleApiKeyVisibility() { els.apiKeyInput.type = els.apiKeyInput.type === 'password' ? 'text' : 'password'; }
 
         function showToast(msg, type = 'info') {
-            state.lastToastData = { msg, type };
-
+            state.lastToastData = { msg, type }; 
             els.toastMsg.textContent = msg;
             els.toast.classList.remove('translate-x-full');
-
-            els.toast.className = 'fixed top-6 right-6 bg-white border-l-4 text-slate-800 px-6 py-4 rounded-r-lg shadow-2xl transform transition-transform duration-300 z-[100] flex items-center gap-4 min-w-[300px] cursor-pointer';
-            const iconContainer = document.getElementById('toastIconContainer');
-
+            
             if (type === 'success') {
                 els.toast.classList.add('border-green-500');
                 els.toastTitle.textContent = '成功';
                 els.toastIcon.setAttribute('data-lucide', 'check');
-                els.toastIcon.classList.add('text-green-600');
-                iconContainer.className = 'p-2 bg-green-50 rounded-full';
             } else if (type === 'error') {
                 els.toast.classList.add('border-red-500');
-                els.toastTitle.textContent = '錯誤 (點擊關閉)';
+                els.toastTitle.textContent = '錯誤';
                 els.toastIcon.setAttribute('data-lucide', 'alert-triangle');
-                els.toastIcon.classList.add('text-red-600');
-                iconContainer.className = 'p-2 bg-red-50 rounded-full';
-            } else {
-                els.toast.classList.add('border-yellow-400');
-                els.toastTitle.textContent = '通知';
-                els.toastIcon.setAttribute('data-lucide', 'info');
-                els.toastIcon.classList.add('text-yellow-600');
-                iconContainer.className = 'p-2 bg-yellow-50 rounded-full';
             }
             lucide.createIcons();
 
             if (state.toastTimer) clearTimeout(state.toastTimer);
-
             if (type !== 'error') {
                 state.toastTimer = setTimeout(() => {
                     els.toast.classList.add('translate-x-full');
-                }, 4000);
+                }, 3000);
             }
         }
 
-        function dismissToast() {
-            els.toast.classList.add('translate-x-full');
-        }
-
-        function showLastToast() {
-            if (state.lastToastData) {
-                showToast(state.lastToastData.msg, state.lastToastData.type);
-            } else {
-                showToast('目前沒有歷史通知', 'info');
-            }
-        }
+        function dismissToast() { els.toast.classList.add('translate-x-full'); }
+        function showLastToast() { if (state.lastToastData) showToast(state.lastToastData.msg, state.lastToastData.type); }
+        function openLightbox() { if (!els.generatedImage.src) return; els.lightboxImage.src = els.generatedImage.src; els.lightbox.classList.remove('hidden'); }
+        function closeLightbox() { els.lightbox.classList.add('hidden'); }
     </script>
 </body>
-
 </html>
