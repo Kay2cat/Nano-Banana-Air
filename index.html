@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nano Banana Studio | Mobile Final v1.9</title>
+    <title>Nano Banana Studio | v2.0 Final</title>
     
     <meta name="description" content="AI image generation studio powered by Google Gemini 3 Pro.">
     <meta property="og:title" content="Nano Banana Studio">
@@ -35,7 +35,6 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Tag Button Styles */
         .tag-btn {
             transition: all 0.2s;
             border: 1px solid #e2e8f0;
@@ -46,6 +45,7 @@
             -webkit-tap-highlight-color: transparent;
         }
         .tag-btn:active { transform: scale(0.96); background-color: #fefce8; }
+        .tag-btn:hover { border-color: #facc15; box-shadow: 0 2px 4px rgba(0,0,0,0.05); } /* Desktop Hover */
         .tag-btn.active {
             border-color: #15803d;
             background-color: #dcfce7;
@@ -62,16 +62,10 @@
             color: #15803d;
         }
         
-        .tab-content {
-            display: none;
-            opacity: 0;
-            width: 100%;
-            flex-grow: 1;
-            transition: opacity 0.2s ease-in-out;
-        }
+        .tab-content { display: none; opacity: 0; width: 100%; flex-grow: 1; transition: opacity 0.2s ease-in-out; }
         .tab-content.active { display: flex; opacity: 1; }
 
-        #styleTooltip { transition: opacity 0.2s; pointer-events: none; }
+        #styleTooltip { transition: opacity 0.15s; pointer-events: none; }
         #lightbox { transition: opacity 0.3s ease; }
         #lightbox.hidden { opacity: 0; pointer-events: none; }
         #lightbox:not(.hidden) { opacity: 1; pointer-events: auto; }
@@ -82,13 +76,11 @@
 
     <!-- Header -->
     <header class="h-14 md:h-16 bg-green-800 border-b-4 border-yellow-400 flex items-center justify-between px-3 md:px-6 shrink-0 z-50 shadow-md gap-2 md:gap-4 relative">
-        <!-- Left: Logo -->
         <div class="flex items-center gap-2 shrink-0">
             <div class="w-8 h-8 md:w-10 md:h-10 bg-yellow-400 rounded-lg md:rounded-xl flex items-center justify-center text-green-900 font-black text-xl md:text-2xl shadow-sm">🍌</div>
             <h1 class="text-lg md:text-xl font-bold text-white tracking-wide hidden sm:block">Nano Banana</h1>
         </div>
         
-        <!-- Center: Nav -->
         <nav class="flex-1 flex justify-center min-w-0">
             <div class="flex bg-green-900/50 p-1 rounded-full border border-green-600/30 backdrop-blur-sm whitespace-nowrap overflow-x-auto no-scrollbar">
                 <button onclick="switchTab('phase1')" id="tab-phase1" class="px-3 md:px-6 py-1 md:py-1.5 rounded-full text-xs md:text-sm font-bold transition-all duration-300 flex items-center gap-1.5">
@@ -100,22 +92,18 @@
             </div>
         </nav>
 
-        <!-- Right: Controls -->
         <div class="flex items-center gap-2 shrink-0">
             <button onclick="showLastToast()" class="p-1.5 md:p-2 rounded-full bg-green-700/50 text-green-100" title="通知"><i data-lucide="bell" class="w-4 h-4 md:w-5 md:h-5"></i></button>
-            
             <button onclick="toggleMobileKeyInput()" class="md:hidden p-1.5 rounded-full bg-green-700/50 text-green-100"><i data-lucide="key" class="w-4 h-4"></i></button>
-
             <div class="relative group hidden md:block">
                 <input type="password" id="apiKeyInput" placeholder="API Key" autocomplete="new-password"
                     class="bg-green-700/50 border border-green-600 text-white placeholder-green-200/70 text-sm rounded-lg px-3 py-1.5 w-32 focus:outline-none focus:border-yellow-400">
             </div>
-            
             <button onclick="saveApiKey()" class="hidden md:block text-xs bg-green-900 hover:bg-green-700 text-yellow-300 font-bold px-3 py-2 rounded-lg border border-green-700">儲存</button>
         </div>
     </header>
 
-    <!-- Mobile Key Input Drawer -->
+    <!-- Mobile Key Input -->
     <div id="mobileKeyDrawer" class="hidden bg-green-900 border-b border-green-700 p-3 fixed top-14 left-0 w-full z-40 flex gap-2 shadow-xl">
         <input type="password" id="mobileApiKeyInput" placeholder="貼上 Key 並按 Enter..." 
             class="flex-1 bg-green-800 text-white text-base rounded px-3 py-2 border border-green-600 focus:border-yellow-400 outline-none"
@@ -155,7 +143,7 @@
         <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-50 md:bg-white order-2 md:order-1 relative pb-20" id="styleContainer">
             <div class="mb-4 md:mb-6">
                 <h2 class="text-lg md:text-2xl font-black text-slate-800 flex items-center gap-2"><span class="text-2xl md:text-3xl">🎨</span> 風格實驗室</h2>
-                <p class="text-slate-500 text-xs md:text-sm mt-1">點擊選擇風格 (每類單選)</p>
+                <p class="text-slate-500 text-xs md:text-sm mt-1">點擊選擇風格 (每類單選)，電腦版滑鼠移入可看說明</p>
             </div>
             <div id="taxonomyContainer" class="space-y-6"></div>
         </div>
@@ -256,6 +244,12 @@
         <img id="lightboxImage" src="" class="max-w-full max-h-[90vh] object-contain">
     </div>
 
+    <!-- Global Tooltip (Moved to Body for Z-Index Safety) -->
+    <div id="styleTooltip" class="fixed hidden z-[999] bg-slate-800 text-white p-4 rounded-xl shadow-2xl max-w-xs border border-slate-600 pointer-events-none">
+        <h4 id="tooltipTitle" class="font-bold text-yellow-400 text-lg mb-1">Title</h4>
+        <p id="tooltipDesc" class="text-xs text-slate-300 leading-relaxed">Description</p>
+    </div>
+
     <!-- Notification Toast -->
     <div id="toast" onclick="dismissToast()" class="fixed top-4 right-4 md:top-6 md:right-6 bg-white border-l-4 border-yellow-400 text-slate-800 px-4 py-3 md:px-6 md:py-4 rounded-r-lg shadow-2xl transform translate-x-full transition-transform duration-300 z-[100] flex items-center gap-3 md:gap-4 max-w-[90vw] md:min-w-[300px] cursor-pointer">
         <div id="toastIconContainer" class="p-1.5 md:p-2 bg-slate-50 rounded-full shrink-0"><i data-lucide="info" id="toastIcon" class="w-4 h-4 md:w-5 md:h-5 text-slate-500"></i></div>
@@ -271,10 +265,10 @@
             "構圖 (Composition)": {
                 icon: "crop", color: "purple",
                 items: [
-                    { tag: "Full body shot", label: "🧍 全身構圖", desc: "確保從頭到腳都完整" },
-                    { tag: "Upper body shot", label: "👤 半身構圖", desc: "專注於腰部以上" },
-                    { tag: "Wide shot, environmental", label: "🏞️ 廣角大景", desc: "人小景大，強調環境" },
-                    { tag: "Action shot, dynamic pose", label: "🏃 動態瞬間", desc: "捕捉高速運動瞬間" }
+                    { tag: "Full body shot", label: "🧍 全身構圖", desc: "確保從頭到腳都完整包含在畫面內，不會切到腳部。" },
+                    { tag: "Upper body shot", label: "👤 半身構圖", desc: "專注於腰部以上，適合展現表情與上半身動作。" },
+                    { tag: "Wide shot, environmental", label: "🏞️ 廣角大景", desc: "人小景大，強調環境氛圍與背景細節。" },
+                    { tag: "Action shot, dynamic pose", label: "🏃 動態瞬間", desc: "捕捉高速運動中的瞬間，強調力量感與速度線。" }
                 ]
             },
             "藝術風格 (Style)": {
@@ -288,7 +282,6 @@
                     { tag: "Watercolor", label: "💧 水彩", desc: "柔和暈染" },
                     { tag: "Pop Art", label: "🍭 普普", desc: "高對比色彩" },
                     { tag: "Pixel art", label: "👾 像素", desc: "復古電玩風" },
-                    // Restored Items:
                     { tag: "Steampunk", label: "⚙️ 蒸氣", desc: "維多利亞機械風" },
                     { tag: "Concept Art", label: "🎮 概念", desc: "遊戲設計圖" },
                     { tag: "Ink Wash Painting", label: "🖌️ 水墨", desc: "東方水墨畫" },
@@ -358,7 +351,10 @@
             taxonomyContainer: document.getElementById('taxonomyContainer'),
             lightbox: document.getElementById('lightbox'),
             lightboxImage: document.getElementById('lightboxImage'),
-            anatomyFixCheck: document.getElementById('anatomyFixCheck')
+            anatomyFixCheck: document.getElementById('anatomyFixCheck'),
+            styleTooltip: document.getElementById('styleTooltip'),
+            tooltipTitle: document.getElementById('tooltipTitle'),
+            tooltipDesc: document.getElementById('tooltipDesc')
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -367,7 +363,38 @@
             loadApiKey();
             setupDragAndDrop();
             switchTab('phase1');
+            setupTooltip(); // Ensure this is called
         });
+
+        // --- FIXED: Tooltip Logic ---
+        function setupTooltip() {
+            els.taxonomyContainer.addEventListener('mouseover', (e) => {
+                const btn = e.target.closest('.tag-btn');
+                if (btn) {
+                    const title = btn.getAttribute('data-title');
+                    const desc = btn.getAttribute('data-desc');
+                    if(title && desc) {
+                        els.tooltipTitle.textContent = title;
+                        els.tooltipDesc.textContent = desc;
+                        els.styleTooltip.classList.remove('hidden');
+                        updateTooltipPos(e);
+                    }
+                }
+            });
+            els.taxonomyContainer.addEventListener('mousemove', (e) => { updateTooltipPos(e); });
+            els.taxonomyContainer.addEventListener('mouseout', (e) => { if (e.target.closest('.tag-btn')) els.styleTooltip.classList.add('hidden'); });
+        }
+
+        function updateTooltipPos(e) {
+            const x = e.clientX + 15;
+            const y = e.clientY + 15;
+            // Prevent tooltip from going off screen (basic check)
+            const rightEdge = window.innerWidth - 320; // 320 is max-w-xs
+            const finalX = x > rightEdge ? x - 330 : x;
+            
+            els.styleTooltip.style.top = `${y}px`;
+            els.styleTooltip.style.left = `${finalX}px`;
+        }
 
         // --- Logic ---
         function toggleMobileKeyInput() {
@@ -407,6 +434,10 @@
                     const btn = document.createElement('button');
                     btn.className = 'tag-btn p-2 rounded-lg text-left text-xs md:text-sm relative group/btn h-full flex items-center';
                     btn.textContent = item.label;
+                    // FIX: Restore data attributes for tooltip
+                    btn.setAttribute('data-category', catName);
+                    btn.setAttribute('data-title', item.label);
+                    btn.setAttribute('data-desc', item.desc);
                     btn.onclick = () => toggleTag(btn, catName, item.tag);
                     grid.appendChild(btn);
                 });
@@ -540,15 +571,13 @@
             // Strategy 1: Web Share API (Best for Mobile)
             if (navigator.share && navigator.canShare) {
                 try {
-                    // Need to convert Data URI to Blob for sharing
                     const response = await fetch(src);
                     const blob = await response.blob();
                     const file = new File([blob], "nano-banana.png", { type: blob.type });
                     await navigator.share({ files: [file] });
                     return;
                 } catch (e) {
-                    console.log('Share failed/cancelled', e);
-                    // Fallback if share fails (e.g. user cancelled)
+                    console.log('Share failed/cancelled, falling back to download');
                 }
             }
 
